@@ -1,0 +1,114 @@
+---
+title: "Simulate Markov Chain Practice"
+author: "Mikayla Mulgrew"
+date: "2025-07-13"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("ggplot2")
+```
+
+#Define a vector called `x` which contains the numbers 1, 2, 3, and 4
+#Use the function `sample` to pick from those four numbers in `x` 10,000 times
+#Plot a histogram of the values
+
+```{r}
+#define a vector containing #s 1-4
+x <- c(1,2,3,4)
+
+#sample function to pick from those 4 numbers 10,000x, replacing values
+samp_ <- sample(x, 10000, replace=TRUE)
+
+#create a dataframe to be able to use ggplot 
+df_2 <- data.frame(samp_, samp_)
+
+#barplot of the frequency of each number picked
+ggplot(df_2, aes(x=samp_)) + geom_bar()
+```
+
+#Use the `sample` or `sample.int` function to simulate values from rolls of an unbiased six-sided die. Show that the distribution of values you obtain is consistent with an unbiased die.
+
+```{r}
+
+#sample numbers 1-6, sides of the die, 10,000x
+samp_int <- sample.int(6, 10000, replace = TRUE)
+
+#create a data frame to be able to use in ggplot
+samp_int_df <- data.frame(samp_int, samp_int)
+
+#barplot for frequency of fair die rolls
+ggplot(samp_int_df, aes(x=samp_int)) + geom_bar()
+
+```
+
+#If it is currently sunny, the probability of it raining the next day is 0.6. Conversely, if it is raining, the probability that it will become sunny the next day is 0.7 and 0.3 that it will continue raining.
+
+```{r}
+
+#transition matrix for probabilities of sun and rain
+sunRain_Mat <- matrix(c(0.4, 0.7, 0.6, 0.3), nrow=2, ncol=2)
+
+sunRain_Mat
+```
+
+#Create a simulation of 30 days of weather based on transtion matrix
+# 1-sunny
+# 2-rainy
+
+#Can you extend this example to a three-state model?
+# 1-sunny
+# 2-rainy
+# 3-cloudy
+
+```{r}
+
+#simulate 30 day weather probabilities based on transtion matrix
+#initialise simulation with 1 - sunny
+state <- 1
+
+#create a vector of length 30 to hold weather state values
+weather <- rep(0,30)
+
+for (day in 1:30){
+  
+  #grab probabilities for transitions given current state
+  trans_prob <- sunRain_Mat[state,]
+  
+  #use sample function to choose next state based on probability transitions
+  state <- sample(c(1,2), size=1, prob=trans_prob)
+  
+  #store new weather state in vector
+  weather[day]<-state
+}
+
+print(weather)
+
+
+#tri-state model
+
+#transition matrix to hold probability values for 3 weather states
+tri_state_matrix = matrix(c(0.7, 0.2, 0.1,0.3, 0.3, 0.4,0.6, 0.2, 0.2), nrow=3, ncol=3, byrow=TRUE)
+
+#initialise weather state at 1-sunny
+i_state <- 1
+
+#create a vector to hold weather state values for 30 days
+tri_weather <- rep(0, 30)
+
+for (day in 1:30){
+  
+  #grab probabilities for next weather state with current weather state
+  tri_prob <- tri_state_matrix[i_state,]
+  
+  #use sample to choose next weather state using probabilities
+  i_state <- sample(c(1,2,3), size=1, prob=tri_prob)
+  
+  #store new weather state in vector
+  tri_weather[day] <- i_state
+}
+
+tri_weather
+```
