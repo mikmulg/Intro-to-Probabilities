@@ -1,0 +1,191 @@
+---
+title: "Simulate Monopoly Practice"
+author: "Mikayla Mulgrew"
+date: "2025-07-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#Function is to make things different colours. (It allows for both LaTeX and html outputs). Use example: `r colorize("some words in red", "red")
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color,
+      x)
+  } else x
+}
+```
+
+# Moving around the board
+
+A Monopoly board has 40 spaces. Players take it in turns to roll two dice and traverse around the board according to the sum of the dice values. Simulate turns of a single player:
+
+```{r}
+#number of turns to be taken
+turns <- 1000000
+
+#initialize starting spot on board 0-GO
+board_position <- 0
+
+#create vectors to store die roll/size of move and board position numbers
+move_sz <- rep(0, turns)
+bd_positions <- rep(0, turns)
+
+#for loop to simulate taking turns in monopoly
+
+for (turn in 1:turns){
+  
+  #dice roll  using sample 
+  roll <- sample(c(1:6), size=2, replace=TRUE)
+  
+  #sum die values 
+  roll_value <- sum(roll)
+  
+  #add to current board position and update board position
+  new_position <- board_position + roll_value
+  #position is remainder when divided by 40 since there are 40 monopoly squares
+  board_position <- (new_position %% 40)
+  
+  #store values in move_sz and bd_positions
+  move_sz[turn] <- roll_value
+  bd_positions[turn] <- board_position
+}
+
+#By increasing the number of turns taken, what distribution does the set of simulated board positions converge towards? Show this graphically using the histogram function. - Uniform Distribution
+
+hist(bd_positions, breaks=seq(0,40,len=41), right=FALSE, main="Frequency of Board Positions", xlab = "Board Position")
+
+```
+# Going to Jail
+#If a player lands on to Go To Jail space they must move immediately to the Jail space. Extend your code to include the possibility of going to jail. Here, assume that once in jail, the player continues as normal on the next turn.
+
+```{r}
+
+#number of turns to be taken
+turns <- 1000000
+
+#initialize starting spot on board 0-GO
+board_position <- 0
+
+#create jail positions 
+go_to_jail <- 30
+jail_position <- 10
+
+#create vectors to store die roll/size of move and board position numbers
+move_sz <- rep(0, turns)
+bd_positions <- rep(0, turns)
+
+#for loop to simulate taking turns in monopoly
+
+for (turn in 1:turns){
+  
+  #dice roll  using sample 
+  roll <- sample(c(1:6), size=2, replace=TRUE)
+  
+  #sum die values 
+  roll_value <- sum(roll)
+  
+  #add to current board position and update board position
+  new_position <- board_position + roll_value
+  #position is remainder when divided by 40 since there are 40 monopoly squares
+  board_position <- (new_position %% 40)
+  
+  #if player lands on go to jail, set board_position as jail_position
+  if (board_position == go_to_jail){
+    board_position <- jail_position
+  }
+  
+  #store values in move_sz and bd_positions
+  move_sz[turn] <- roll_value
+  bd_positions[turn] <- board_position
+}
+
+#Now, what is the distribution of board positions during a long game?
+hist(bd_positions, breaks=seq(0,40,len=41), right=FALSE, main="Frequency of Board Positions with Go To Jail", xlab = "Board Position")
+
+```
+## Questions
+
+**Q1**. Can you explain the histogram of frequency against positions visited, qualitatively?
+ 
+#After a large number of turns, 10,000 and above, the distribution of positions by frequency tends towards a uniform distribution. This means that is about equally likely to land on any of the board positions. 
+  
+
+**Q2**. You can also go to jail, if you roll three doubles (both dice having the same value) in a row. Update your code to allow for the possibility of going to Jail with three doubles. How does the distribution of board positions change?
+
+#Distribution of board positions, with the exception of the go to jail and jail positions, still tend toward a uniform distribution since three doubles in a row isn't very common.
+
+```{r}
+
+#number of turns to be taken
+turns <- 100000
+
+#initialize starting spot on board 0-GO
+board_position <- 0
+
+#create jail positions 
+go_to_jail <- 30
+jail_position <- 10
+
+#create vectors to store die roll/size of move and board position numbers
+move_sz <- rep(0, turns)
+bd_positions <- rep(0, turns)
+
+#create another vector to hold boolean values for whether each given roll was a double or not, populate with FALSE values 
+move_dbl <- rep(FALSE, turns)
+
+#for loop to simulate taking turns in monopoly
+
+for (turn in 1:turns){
+  
+  #dice roll  using sample 
+  roll <- sample(c(1:6), size=2, replace=TRUE)
+  
+  #if die rolls are equal to each other than doubles for the move is changed to TRUE 
+  if (roll[1] == roll[2]){
+    move_dbl[turn] <- TRUE
+  }
+  
+  #sum die values 
+  roll_value <- sum(roll)
+  
+  #add to current board position and update board position
+  new_position <- board_position + roll_value
+  #position is remainder when divided by 40 since there are 40 monopoly squares
+  board_position <- (new_position %% 40)
+  
+  #if player rolls three doubles in a row, send to jail_position
+  #access last three role values, starting at turn >= 3
+  if (turn >= 3){
+    
+    #get last three turns boolean values
+    start <- turn - 1
+    end <- turn - 3
+    doubles <- move_dbl[start:end]
+    
+    #if all are TRUE, then send to jail_position
+    if (all(doubles == TRUE)){
+      board_position <- jail_position
+    }
+  }
+  
+  #if player lands on go to jail, set board_position as jail_position
+  if (board_position == go_to_jail){
+    board_position <- jail_position
+  }  
+  
+#
+  
+  #store values in move_sz and bd_positions
+  move_sz[turn] <- roll_value
+  bd_positions[turn] <- board_position
+}
+
+
+#Now, what is the distribution of board positions during a long game?
+hist(bd_positions, breaks=seq(0,40,len=41), right=FALSE, main="Frequency of Board Positions with Go To Jail and 3 Doubles To Jail", xlab = "Board Position")
+
+```
