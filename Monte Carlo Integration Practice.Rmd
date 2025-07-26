@@ -71,3 +71,181 @@ for (i in seq(from=100, to=100000, by=1000)){
 #plot barplot showing difference in simulate values vs exact value from CDF
 barplot(values, main="Difference between Exact Value and MC Simulated Values", xlab="Simulation Sample Size", ylab="Difference")
 ```
+
+Model Solution plots difference in mean and sd, try that. 
+  
+Example:  
+  
+  accuracy[i] = mean(mc_integral - mc_exact) # compute average difference between integral estimate and real value
+  accuracy_sd[i] = sd(mc_integral - mc_exact) # compute sd difference between integral estimate and real value
+
+}
+
+print(accuracy)
+
+print(accuracy_sd)
+
+print(accuracy+accuracy_sd)
+
+# load ggplot
+library(ggplot2)
+
+# create a data frame for plotting
+df = data.frame(sample_sizes, accuracy, accuracy_sd)
+
+print(df)
+
+# use ggplot to plot lines for the mean accuracy and error bars using the std dev
+ggplot(df, aes(x=sample_sizes, y=accuracy)) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=accuracy-accuracy_sd, ymax=accuracy+accuracy_sd), width=.2,
+                position=position_dodge(0.05)) +
+  ylab("Estimate-Exact") +
+  xlab("Run")
+  
+  
+  
+  
+# Approximating the Binomial Distribution
+We flip a coin 10 times and we want to know the probability of getting more than 3 heads. This is a trivial problem using the Binomial distribution but suppose we have forgotten about this or never learned it in the first place.
+
+Let's solve this problem with a Monte Carlo simulation. We will use the common trick of representing tails with 0 and heads with 1, then simulate 10 coin tosses 100 times and see how often that happens.
+
+```{r}
+
+#number of simulations to run
+n_sims <- c(10, 100, 500, 1000, 2000, 5000)
+
+#create a vector to hold outcome for each simulation, mean, sd
+great_3 <- rep(0, length(n_sims))
+s_mean_acc <- rep(0, length(n_sims))
+s_sd_acc <- rep(0, length(n_sims))
+
+#use for loop to run through each simulation size
+for (s in 1:length(n_sims)){
+  
+  #get simulation size
+  simsz <- n_sims[s]
+  
+  #vector to hold outcome of coin toss
+  greater_3 <- rep(0, simsz)
+  
+  #toss coin for number of simulations
+  for (x in 1:simsz){
+    
+    #flip a coin ten times
+    flips <- sample(c(0,1), 10, replace=TRUE)
+  
+    #if more than 3 heads are flipped change value to 1 in great_3
+    if (sum(flips) > 3){
+      greater_3[x] <- 1
+    }
+    
+  }
+  
+  #get mean and sd of simulated values and add to vector s_mean_acc and s_sd_acc
+  
+  s_mean_acc[s] <- mean(greater_3 - pbinom(3, 10, 0.5, lower.tail=FALSE))
+  s_sd_acc[s] <- sd(greater_3 - pbinom(3, 10, 0.5, lower.tail=FALSE))
+  
+}
+
+print(s_mean_acc)
+print(s_sd_acc)
+
+#true value
+print( pbinom(3, 10, 0.5, lower.tail=FALSE) )
+
+```
+
+## Problem
+> **Q1.** Try increasing the number of simulations and see how the accuracy improves?
+
+> **Q2.** Can you plot how the accuracy varies as a function of the number of simulations? (hint: see the previous section)
+
+
+```{r}
+
+library(ggplot2)
+
+#create data frame with simulation sizes and means
+great_df <- data.frame(n_sims, s_mean_acc)
+
+#plot mean accuracy with sd error bars
+ggplot(great_df, aes(x=n_sims, y=s_mean_acc)) +geom_line() + geom_point() + geom_errorbar(aes(ymin=s_mean_acc-s_sd_acc, ymax=s_mean_acc+s_sd_acc)) + xlab("Simulation Size") + ylab("Estimate - Exact")
+
+```
+# Monte Carlo Expectations
+Consider the following spinner. If the spinner is spun randomly then it has a probability 0.5 of landing on yellow and 0.25 of landing on red or blue respectively.
+
+If the rules of the game are such that landing on 'yellow' you gain 1 point, 'red' you lose 1 point and 'blue' you gain 2 points. We can easily calculate the expected score.
+
+Let X denote the random variable associated with the score of the spin then:
+
+\[E[X]=(\frac{1}{2} \times 1)+(\frac{1}{4}\times-1)+(\frac{1}{4}\times2)=0.75\]
+
+If we ask a more challenging question such as:
+
+> After 20 spins what is the probability that you will have less then 0 points?"
+
+How might we solve this?
+
+Of course, there are methods to analytically solve this type of problem but by the time they are even explained we could have already written our simulation!
+
+To solve this with a Monte Carlo simulation you need to sample from the Spinner 20 times, and return 1 if we are below 0 other wise we'll return 0. We will repeat this 10,000 times to see how often it happens!
+
+## Functions
+First, we are going to introduce the concept of a function. This is a piece of code which is encapsulated so then we can refer to it repeated via the name of the function rather than repeatedly writing those lines of code. The function we will write will simulate one game as indicated above and return whether the number of points is less than zero.
+## Simulation
+Now we can use this function in a loop to play the game 100 times.
+
+We can then compute the probability that, after twenty spins, we will have less than zero points
+
+## Problems
+> **Q1.** Modify your code to allow you to calculate the expected number of points after 20 spins.
+> **Q2.** Simulate a game in which you have a maximum of 20 spins but you go “bust” once you hit a negative score and take this into account when you compute the expected end of game score.
+
+```{r}
+
+game <- function(){
+  
+  #random sample to model spinning wheel
+  #Y, 1pt, prob=0.5
+  #R, -1pt, prob=0.25
+  #B, 2pt, prob=0.25
+  
+  results <- sample(c(1,-1,2), 20, replace=TRUE, prob=c(0.5,0.25,0.25))
+  
+  #get cumulative outcomes for the 20 spins 
+  cumulative <- cumsum(results)
+  
+  #check if any are 0 or less than zero
+  for (i in cumulative){
+    if (i < 0){
+      return(0)
+    } else {
+      return(cumulative[20])
+    }
+  }
+}
+
+n <- 1000
+
+#vector to store results of each simulation
+game_outcome <- rep(0, n)
+
+#for loop to run 100 simulations
+for (i in 1:n){
+  
+  #play game and add to outcome
+  game_outcome[i] <- game()
+  
+}
+
+#expected outcome
+expected <- mean(game_outcome)
+print(expected)
+
+plot(game_outcome)
+```
