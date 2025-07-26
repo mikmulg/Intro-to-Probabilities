@@ -1,0 +1,109 @@
+---
+title: "U4L1 Random Samples Practice"
+author: "Mikayla Mulgrew"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction
+
+There are a number of functions in `R` that you can use to simulate random numbers according to different probability distributions. We have already encountered some aspects of sampling in a previous exercise. Here we will look at it in more detail and also cover sampling from continuous distributions.
+
+# Sampling from discrete RV
+
+The function `sample` allows you to take a sample of the specified size from the elements of a vector \(x\) using sampling with or without replacement. You can use `?sample` to read the documentation describing the command. This should be standard for you whenever you see a new function to check what it does.
+
+In the following, we will use the sample function to make 10,000 draws from the set of numbers \(1, 2, \ldots, 10\) and display the distribution of the sampled values using a histogram.
+
+First, we define a vector called $x$ which contains the numbers and then we can sample. At the same time we will explore the role of sample size.
+
+```{r}
+
+# The notation of a colon between two numbers produces a sequence of numbers
+# In this case from 0 to 10 in steps of one.
+x <- 1:10
+
+# Set seed for random variable
+# We use this to be able to reproduce the same results
+set.seed(42)
+# Sample with replace using different sizes of the sample
+uni_sample1 <- sample(x, 100, replace = TRUE)
+uni_sample2 <- sample(x, 1000, replace = TRUE)
+uni_sample3 <- sample(x, 10^6, replace = TRUE)
+
+# Plot a histogram for each and compare
+hist(uni_sample1, breaks = 0:10, main = '', xlab = 'Values', ylab = 'Frequency')
+hist(uni_sample2, breaks = 0:10, main = '', xlab = 'Values', ylab = 'Frequency')
+hist(uni_sample3, breaks = 0:10, main = '', xlab = 'Values', ylab = 'Frequency')
+
+```
+
+Play around with sampling for more number and changing the sample size to see the interplay between the two variables.
+
+## Adjusting probabilities for `sample()`
+
+Let us now consider a case where we have specific probabilities assigned to the numbers we want to sample from. This could be due to prior information or experiments performed. Let us consider a simple case of a manipulated die where we have the following probabilities \((0.12, 0.12, 0.12, 0.12, 0.12, 0.4\) for \(1, 2, \ldots, 6\). Given these probabilities we expect the value 6 to come up a lot more often. We will again look at different samples sizes to see how pronounced this is.
+
+```{r}
+# Create the values we will sample from
+x_die <- 1:6
+# Create a vector for the relevant probabilities
+p_x <- c(0.12, 0.12, 0.12, 0.12, 0.12, 0.4)
+
+# Here it's worth it to make a sanity check to avoid mistakes
+# Do the probabilities add up to up
+print(sum(p_x))
+
+# Perfrom sampling
+die_sample1 <- sample(x_die, 10, prob = p_x, replace = TRUE)
+die_sample2 <- sample(x_die, 30, prob = p_x, replace = TRUE)
+die_sample3 <- sample(x_die, 100, prob = p_x, replace = TRUE)
+die_sample4 <- sample(x_die, 10^4, prob = p_x, replace = TRUE)
+
+hist(die_sample1, breaks = 0:6, main = '', xlab = 'Values', ylab = 'Frequency')
+hist(die_sample2, breaks = 0:6, main = '', xlab = 'Values', ylab = 'Frequency')
+hist(die_sample3, breaks = 0:6, main = '', xlab = 'Values', ylab = 'Frequency')
+hist(die_sample4, breaks = 0:6, main = '', xlab = 'Values', ylab = 'Frequency')
+```
+
+# Using inbuilt functions for discrete RV
+
+There are several functions built into `R` to produce samples from various distributions. Two important discrete distributions that we have covered are the Binomial distribution and the Poisson distribution. If you look at the documentation of these distributions you will see something at the top that refers several function
+
+# Continuous RV
+
+We also have inbuilt for continuous distributions, a very useful one is of course for the normal distribution. Use `?rnom` to get more information on the distribution.
+
+
+## Problem
+> **Q1.** For a binomial distribution with 30 trials and a success probability of 0.3, compute the probability of getting 10 successes. Also compute probability of obtaining 10 or fewer successes.
+
+```{r}
+
+#dbinom for 10 successes
+dbinom(10, size = 30, prob = 0.3)
+
+#pbinom for 10 or less successes 
+pbinom(10, size = 30, prob = 0.3)
+
+
+
+# Create normal sample with 100 observations mean = 1 and sd = 2
+s1_norm <- rnorm(1000, mean = 1, sd = 2)
+
+# Create a vector x from -5 to 6 in steps of 0.01
+x <- seq(-5, 6, by = 0.01)
+# Get the value of the pdf at all values of x for the same distribution
+norm_dist <- dnorm(x, mean = 1, sd = 2)
+
+# Plot a histogram not of frequency but density (prob = T)
+# Set specific y limits on the plot
+# Set specific limits on the x-axis
+hist(s1_norm, prob = T, breaks=100, ylim = c(0, 0.25), xlim = c(-5, 6))
+# Ad a density line in blue
+lines(x, norm_dist, col = "blue", lwd = 3)
+
+
+```
+
