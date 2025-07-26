@@ -1,0 +1,73 @@
+---
+title: "Monte Carlo Integration Practice"
+author: "Mikayla Mulgrew"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction
+Monte Carlo (MC) simulations provide a means to model a problem and apply brute force computational power to achieve a solution - randomly simulate from a model until you get an answer. The best way to explain is to just run through a bunch of examples, so lets go!
+
+# Integration
+We will start with basic integration. Suppose we have an instance of a Normal distribution with a mean of 1 and a standard deviation of 2 then we want to find the _integral_ (area under the curve) from 1 to 3:
+\[\int_1 ^3 \frac{1}{10\sqrt{2\pi}}e^{-\frac{(x-1)^2}{2\times 2^2}}\, dx\]
+
+
+First, create a new R script in Rstudio. Next we define the number of samples we will obtain. Lets choose 100.
+
+Then use the R function `rnorm` to simulate 100 numbers from a Normal distribution with mean 1 and standard deviation 2.
+
+Estimate the integral between 1 and 3 by counting how many samples had a value in this range.
+
+The `pnorm` gives the integral under the Normal distribution (in this case with mean 1 and standard deviation 2) from negative infinity up to the value specified by q.
+
+# MC integration problem
+
+> **Q1.** Try increasing the number of simulations and see how the accuracy improves?
+
+> **Q2.** Can you draw a graph of number of MC samples vs accuracy?
+
+```{r}
+
+#define number of samples to obtain
+n <- 100
+
+#use rnorm to simulate 100 numbers from a normal distribition, mean=1 and sd=2
+simulations <- rnorm(n, mean=1, sd=2)
+
+#estimate integral between 1 and 3 by counting samples with a value in range
+mc_S <- sum(simulations <=3 & simulations >= 1)/100
+print(paste("Simulation with 100 samples: ", mc_S))
+
+#The exact answer given using the cumulative distribution function pnorm in R is given by:
+mc_exact = pnorm(q=3, mean=1, sd=2) - pnorm(q=1, mean=1, sd=2)
+print(paste("Exact answer using CDF: ", mc_exact))
+
+##Q1 - increasing sample size to increase accuracy
+n2 <- 10000
+
+simulations_2 <- rnorm(n2, mean=1, sd=2)
+mc_S2 <- sum(simulations_2 <=3 & simulations_2 >=1)/n2
+print(paste("Simulation with 10,000 samples: ", mc_S2))
+
+#Q2 - Can you draw a graph of number of MC samples vs accuracy?
+
+#create a vector to hold simulated value from each simulation
+values <- c()
+
+for (i in seq(from=100, to=100000, by=1000)){
+  
+  sims <- rnorm(i, mean=1, sd=2)
+  mcS <- sum(sims <=3 & sims >=1)/i
+  #add difference of mcexact to mcS to values vector
+  difference <- mc_exact - mcS
+  
+  val <- as.character(i)
+  values[val] <- difference
+  
+}
+
+#plot barplot showing difference in simulate values vs exact value from CDF
+barplot(values, main="Difference between Exact Value and MC Simulated Values", xlab="Simulation Sample Size", ylab="Difference")
+```
