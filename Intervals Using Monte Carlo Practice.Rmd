@@ -1,0 +1,103 @@
+---
+title: "Intervals Using Monte Carlo Practice"
+author: "Mikayla Mulgrew"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction
+In this practical, you will learn how to derive confidence intervals for a particular problem using Monte Carlo simulations.
+
+In a random experiment, a sample of data is collected from which we can estimate a population parameter of interest. This estimate can either be a point estimate or an _interval estimate_ - a range of values.
+
+A __confidence interval__ is an interval estimate which has an associated _confidence level_. The confidence level tells us the probability that the _procedure_ that is used to construct the confidence interval will result in the interval containing the true population parameter. It is _not_ the probability that the population parameter lies in the range.
+
+# Simulating data
+
+We are now going to generate some simulated data for our experiment. We will create 30 samples from a Normal distribution with mean 2.5 and variance 1. These are _true_ values of the population parameters. In a real experiment, we would not know these values but using simulated data, we obviously control these.
+
+# Constructing the confidence interval
+We are going to pretend that we do not know the population mean value (\(\mu = 2.5\)) used to generate this dataset and try to provide an interval estimate for it from the simulated sample data.
+
+Remember, that the sample mean $\bar{x}$ is a natural point estimate for the population mean $\mu$.
+We now have 30 samples from a Normal distribution with population mean 2.5 and variance 1.
+
+# Experiment
+
+The previous experiment only examined one simulated dataset so we cannot fully understand the probabilistic interpretation of the confidence interval just yet. At the moment, the interval you have calculated will either contain the population mean or not.
+
+In order to understand the probabilistic interpretation, we will need to generate many data sets, construct confidence intervals as we have for each and then see across all generated data sets, how often those intervals cover the true population mean.
+
+We can now calculate, for each width, an estimate of the probability that a confidence interval of that width will contain the population mean.
+```{r}
+
+# Problem
+##Q1.Can you devise a way to compute a confidence interval for the population variance?
+
+
+#import ggplot
+library(ggplot2)
+
+#define an confidence interval width of 1
+int_width <- 1
+
+#number of data points to generate
+n <- 30
+
+mu <- 2.5
+sig <- 1
+
+#generate normal distributed data
+x <- rnorm(n, mean=mu, sd=sig)
+
+#compute mean of sample created
+samp_mean <- mean(x)
+
+#create an interval centered around the mean
+interval <- c(samp_mean - int_width/2, samp_mean + int_width/2)
+
+##__Q1.__: Does the confidence interval contain the true parameter? Yes. 
+print(interval)
+
+#define number of repetitions/MC sims to run
+n_reps <- 1000
+
+# define a series of interval widths
+interval_width <- seq(0.1, 1.0, 0.1)
+# store the number of interval widths generated
+n_interval_widths <- length(interval_width)
+
+# create a vector to store the number of times the population mean is contained
+sig_contained <- rep(0, n_interval_widths)
+
+#create for loop to go through each repetition
+for (rep in 1:n_reps){
+  
+  #simulate a data set
+  x_rep <- rnorm(n, mean=mu, sd=sig)
+  #compute mean for simulated data set
+  xr_sd <- sd(x_rep)
+  
+  for (i in 1:n_interval_widths){
+    #check if true mean is in interval
+    if ((sig > xr_sd - 0.5*interval_width[i]) && (sig < xr_sd + 0.5*interval_width[i])){
+      # if it is, we increment the count by one for this width
+      sig_contained[i] <- sig_contained[i] + 1
+    }
+  }
+}
+
+#calculate, for each width, an estimate of the probability that a confidence interval of that width will contain the population mean
+prob_sig_contained <- sig_contained/n_reps
+
+#use ggplot to plot this relationship, first creating a data frame
+sig_df <- data.frame(int_width = interval_width, prob_sig_contained = prob_sig_contained)
+
+ggplot(sig_df, aes(x=interval_width, y=prob_sig_contained)) + geom_line() + xlab("Interval Width") + ylab("Probability that SD is Contained in Interval")
+
+print(sig_df)
+
+
+
+```
