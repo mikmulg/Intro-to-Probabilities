@@ -1,0 +1,166 @@
+---
+title: "U7L2 One Two Test"
+author: "Mikayla Mulgrew"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Problem 1
+
+A process for filling milk cartons is claimed to fill each carton with an average of 260g.
+
+The population fill weight is known to be normal, with a standard deviation of 1.65g.
+
+A random sample of five cartons was collected, and the content weighed, yielding the following (in g.)
+
+Construct a suitable hypothesis test, at the 1% significance level, to determine whether cartons are being over-filled.
+
+```{r}
+#data
+fill <- c(263.9, 266.2, 266.3, 266.8, 265.0)
+
+mu <- 260
+sig <- 1.65
+
+samp_mean <- mean(fill)
+n <- length(fill)
+
+#construct the z-statistic
+z <- (samp_mean - mu)/(sig/sqrt(n))
+print(z)
+
+z_threshold <- qnorm(1-0.01, mean=0, sd=1)
+print(z_threshold)
+
+#The z-statistic is much greater than the z-threshold, suggesting that the cartons are overfilled
+```
+
+# Problem 2
+
+The mean length of a certain type of component is assumed to be 100mm. Concerns are raised that the mean length is not 100mm.
+
+A random sample of size 45 was obtained, yielding \(\bar{x}=103.11\) and \(s=53.5\).
+
+Perform a hypothesis test, at the 5% level, to determine whether these concerns are justified.
+
+```{r}
+
+n2 <- 45
+mu2 <- 100
+samp_mean2 <- 103.11
+sig2 <- 53.5
+
+#compute z-statistic
+z2 <- (samp_mean2 - mu2)/(sig2/sqrt(n2))
+
+#computer upper and lower z-thresholds for the critical region
+z_upper <- qnorm(1-0.025, mean=0, sd=1)
+z_lower <- qnorm(0.025, mean=0, sd=1)
+
+print(z2)
+print(z_upper)
+print(z_lower)
+
+#The z-statistic does not fall with the critical regions and so the null hypothesis is not rejected
+
+```
+# Problem 3
+
+Can you write your own `z_test` function to perform one-sided or two-sided location (z) tests?
+
+```{r}
+
+z_test <- function(samp, mu, pvar){
+  
+  #get samp_mean and length of samp data
+  samp_mean <- mean(samp)
+  n <- length(samp)
+  
+  #create z_statistic
+  z <- (samp_mean - mu)/(pvar/sqrt(n))
+  
+  #get one-tail probability
+  one_tail <- pnorm(abs(z), mean=0, sd=1, lower.tail = FALSE)
+  
+  #return values
+  return(list(z_score=z, one_tail_prob=one_tail, two_tail_prob=one_tail*2))
+  
+}
+
+#test function - null is not rejected
+x <- rnorm(10, mean = 0, sd = 1)
+out <- z_test(x, 0, 1)
+print(out)
+
+#test function - null is rejected
+x2 <- rnorm(10, mean = 1, sd = 1)
+out2 <- z_test(x2, 0, 1) 
+print(out2)
+
+
+```
+
+Large Sample Test Practice
+
+# Problem 1
+
+A manufacturing process yields a product that has a quality control specification of \(\mu_0=5.4\).
+
+A random sample of size \(n=35\) had a sample mean of \(5.64\) and sample variance of \(0.35\).
+
+Conduct a hypothesis test, at the \(5%\) significance level, to assess whether the process is meeting specification.
+
+```{r}
+
+#set values
+mu <- 5.4
+n <- 35
+
+samp_mean <- 5.64
+samp_var <- 0.35
+
+#create z-statistic based on large sample size, unknown pop. variance
+z <- (samp_mean - mu)/sqrt(samp_var/n)
+
+#get upper and lower bounds for critical region
+z_upper <- qnorm(1-0.025)
+z_lower <- qnorm(0.025)
+
+print(z)
+print(z_upper)
+print(z_lower)
+
+# The z-statistic is outside the bounds of the critical region and so the null hypothesis is rejected. 
+
+```
+
+# Problem 2
+
+Two methods of filling standard gas cylinders are claimed to be different.
+
+In particular, process \(A\) is claimed to yield a higher pressure that process \(B\).
+
+> A random sample of 72 cylinders were filled using process $A$, yielding $\bar{x}_A = 88$ and $s_A^2 = 4.5$.
+
+Conduct a hypothesis test, at the 5% significance level, to investigate if this meets requirements of 90 bars.
+
+```{r}
+
+#create values
+muA <- 90
+x_bar <- 88
+samp_s2 <- 4.5
+nA <- 72
+
+
+#z-statistic for pop. mean and variance unknown, large sample size
+z_stat <-(x_bar - muA)/(sqrt(samp_s2/nA))
+
+print(z_stat)
+print(z_upper)
+print(z_lower)
+
+#Again, the z-statistic falls within the critical/rejection region and the null hypothesis would be rejected, suggesting that sample A does not meet the requirement of 90 bars. 
+
+```
