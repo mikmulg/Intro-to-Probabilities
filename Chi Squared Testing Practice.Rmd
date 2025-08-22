@@ -1,0 +1,90 @@
+---
+title: "Chi squared Testing Practice"
+author: "Mikayla Mulgrew"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#import packages and libraries
+install.packages("vcdExtra")
+library(vcdExtra)
+library(MASS)
+
+```
+
+# Problem 1
+
+In an animal behaviour experiment a group of 90 rats proceed down a ramp to one of three doors.
+
+The observed counts for each door were:
+
+> Door: 1, 2, 3
+
+> Rats: 23, 36, 31
+
+Is there evidence to suggest a preference for a specific door? Test at the 5% significance level.
+
+```{r}
+#create variables
+rats <- c(23,36,31)
+door_prob <- c(1/3,1/3,1/3)
+
+n <- sum(rats)
+K <- length(rats)
+
+#calculate expected counts for each door
+expected <- door_prob*n
+
+#calculate chi2 statistic
+chi2 <- sum(((rats - expected)^2)/expected)
+print(chi2)
+
+#calculate critical value from chi2 distribution
+chi_upper <- qchisq(1-0.05, df=K-1)
+print(chi_upper)
+
+#The chi2 statistic does not fall in the rejection region so there is no reason to reject the null hypothesis that there is no preferred door for the rats to enter.
+
+#chi2 test 
+chi_test <- chisq.test(rats, p=door_prob)
+print(chi_test)
+
+```
+
+# Problem 2
+
+The number of accidents at a junction per week, \(Y\), was observed over a 50 week period, yielding:
+
+> $y$: $0, 1, 2, \geq 3$
+
+> $O$: $32, 12, 6, 0$
+
+Test the hypothesis, at the 1% level, that \(Y \sim \operatorname{Poisson} (\lambda)\)
+
+```{r}
+
+#create variables
+num_a <- c(0,1,2)
+acc_O <- c(32, 12, 6)
+
+#testing hypothesis at 1% level and that Y~Poisson(lambda)
+#first need to compute the poisson pdf
+
+samples <- expand.dft(data.frame(num_a, Frequency=acc_O), freq="Frequency")
+
+lambda_hat <- fitdistr(samples$num_a, densfun = 'Poisson')
+
+probs <- c(0,0,0)
+
+probs[1] <- dpois(0,lambda=lambda_hat$estimate)
+probs[2] <- dpois(1,lambda=lambda_hat$estimate)
+probs[3] <- 1 - probs[1] - probs[2]
+
+chi_test2 <- chisq.test(acc_O, p=probs)
+print(chi_test2)
+
+chi_lower <- qchisq(1-0.01, df=1)
+print(chi_lower)
+
+```
